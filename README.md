@@ -16,5 +16,5 @@ Puede usar estos ficheros tal como describe la licencia de uso Mozilla Public Li
 
 Si usa este material en cualquier material docente u otro tipo de publicación cítelo como:
 
-F. Javier Payán Somet, Juan José Murillo Fuentes, José Carlos Aradillas Jaramillo, "Manual de Laboratoio de Comunicaciones Digitales con Python". \
+F. Javier Payán Somet, Juan José Murillo Fuentes, José Carlos Aradillas Jaramillo, "Manual de Laboratorio de Comunicaciones Digitales con Python". \
 Departamento de Teoría de la Señal y Comunicaciones. Escuela Técnica Superior de Ingeniería. Universidad de Sevilla. Ed 2020.
