@@ -96,23 +96,23 @@ def transmisorpam(Bn,Eb,M,p,L):
     # Se Ajusta M a una potencia de dos
     M = 2**(k)
     
-    # El alfabeto [Ver la ecuación (4.25)] 
+    # El alfabeto [Ver la ecuación (4.21)] 
     alfabetopam = np.sqrt(3*Eb*np.log2(M)/(M**2-1))*(2*(np.arange(M))-M+1)
     
     # Si Bn no tiene una longitud múltiplo de k, se completa con ceros
     Nb = len(Bn)  # Número de bits a transmitir, actualizado
     Bn = np.pad(Bn, [0, int(k*np.ceil(Nb/k)-Nb)],mode='constant')
-    Nb = len(Bn)  # Número de bits que vamos a transmitir tras la corrección
+    Nb = len(Bn)  # Número de bits a transmitir tras la corrección
     Ns = Nb//k        # Número de sí­mbolos a transmitir
     
     # La secuencia generada
     if M>2:
-        An = alfabetopam[gray2de(np.reshape(Bn,[k,Ns],order='F'))] 
+        An = alfabetopam[gray2de(np.reshape(Bn,[Ns,k]))]
     else:
         An = alfabetopam[Bn]
     
-    # Comprobación de las longitudes y otros datos del pulso suministrado para hacer
-    # que el número de muestras del mismo sea efectivamente L
+    # Comprobación de las longitudes y otros datos del pulso suministrado para 
+    # hacer que el número de muestras del mismo sea efectivamente L
     Ls = len(p)
     if Ls<L:
         p = np.pad(p,[0,L-Ls],mode='constant')
@@ -358,9 +358,9 @@ def transmisorppm(Bn, Eb, g, L, M):
 Otras funciones de carácter general
 '''
 def gray2de(b): 
-    '''
-     Convierte cada fila de la matriz formada por dígitos binarios b en un vector
-          columna de los valores decimales correspondientes.
+    ''' 
+     d = gray2de(b) Convierte cada fila de la matriz formada por dígitos binarios b
+       en un vector columna, d, de los valores decimales correspondientes.
     '''
     c = np.zeros_like(b)
     c[:,0] = b[:,0]
