@@ -101,7 +101,7 @@ def transmisorpam(Bn,Eb,M,p,L):
     
     # Si Bn no tiene una longitud múltiplo de k, se completa con ceros
     Nb = len(Bn)  # Número de bits a transmitir, actualizado
-    Bn = np.pad(Bn, [0, int(k*np.ceil(Nb/k)-Nb)],mode='constant')
+    Bn = np.r_[Bn,np.zeros(int(k*np.ceil(Nb/k)-Nb)).astype(int)] #
     Nb = len(Bn)  # Número de bits a transmitir tras la corrección
     Ns = Nb//k        # Número de sí­mbolos a transmitir
     
@@ -115,13 +115,13 @@ def transmisorpam(Bn,Eb,M,p,L):
     # hacer que el número de muestras del mismo sea efectivamente L
     Ls = len(p)
     if Ls<L:
-        p = np.pad(p,[0,L-Ls],mode='constant')
-    else:
+        p = np.r_[p, np.zeros(L-Ls)]
+    elif Ls>L:
         print('La duración del pulso se trunca a {} muestras'.format(str(L)))
         p = p[:L] #Debe modificarse si se quiere un pulso de más de L muestras
     
     # Se normaliza la energí­a del pulso para obtener la base del sistema
-    phi = (1/np.sqrt(np.dot(p, p.T)))*p 
+    phi = p / np.sqrt(p@p) 
        
     # Obtención del tren de pulsos
     Xn = np.kron(An,phi) #Debe modificarse si se quiere un pulso de más de L muestras
@@ -151,9 +151,8 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
    phi2 = Pulso básico real normalizado (energí­a unidad) de la componente en cuadratura
    alfabeto = El alfabeto utilizado asociado a cada símbolo transmitido
    '''
-   
    #Definiciones
-   eps = np.finfo(float).eps
+   eps = np.finfo(float).eps # por debajo de este valor se considera cero
     
    # Comprobación de las longitudes y otros datos de los pulsos de llamada
    Ls1 = len(p1)
@@ -163,24 +162,25 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
        return
    
    if Ls1<L:
-       p1 = np.pad(p1,[0, int(L-Ls1)],mode='constant')
-   else:
+       p1 = np.r_[p1, np.zeros(int(L-Ls1))]
+   elif Ls1>L:
        p1 = p1[:L]
+       print('La duración del pulso se trunca a {} muestras'.format(str(L)))
    if Ls2<L:
-       p2 = np.pad(p2,[0, int(L-Ls2)],mode='constant')
-   else:
+       p2 = np.r_[p2, np.zeros(int(L-Ls2))]
+   elif Ls2>L:
        p2 = p2[:L]
+       print('La duración del pulso se trunca a {} muestras'.format(str(L)))       
        
    # Se comprueba la ortogonalidad
-   if abs(np.sum(p1*p2))>=1e0*eps*10:
+   if abs(p1@p2) >= 1e0*eps*10:
        print('No es posible realizar la transmisión') 
        return
-   
+       
    # Se normalizan las energías de los pulsos
-   phi1 = (1/np.sqrt(np.sum(p1*p1))) * p1 
-   phi2 = (1/np.sqrt(np.sum(p2*p2))) * p2 
-   
-   # Se genera el pulso complejo [Ver la ecuación (5.14)]
+   phi1 = p1 / np.sqrt(p1@p1) 
+   phi2 = p2 / np.sqrt(p2@p2)  
+   # Se genera el pulso complejo [Ver la ecuación (5.25)]
    phi = phi1 - 1j*phi2
    
    # Obtención de los niveles asociados a cada símbolo: alfabeto
@@ -188,12 +188,12 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
    k = int(np.ceil(np.log2(M)))
    # Se ajusta M a una potencia de dos
    M = 2**(k)
-   # El alfabeto [Ver la ecuación (5.13)]
+   # El alfabeto [Ver la ecuación (5.24)]
    alfabeto = np.sqrt(Eb*k)*np.exp(1j*2*np.pi*np.arange(M)/M) #empieza en 0
    
    # Si la longitud de Bn no es múltiplo de k, se completa con ceros
    Nb = len(Bn) 
-   Bn = np.pad(Bn, [0, int(k*np.ceil(Nb/k)-Nb)],mode='constant') 
+   Bn = np.r_[Bn,np.zeros(int(k*np.ceil(Nb/k)-Nb)).astype(int)] #
    
    # Número de bits y símbolos que vamos a transmitir
    Nb = len(Bn) # Número de bits que vamos a transmitir tras la corrección 
@@ -201,7 +201,7 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
 
    # La secuencia generada
    if M>2:
-       An = alfabeto[gray2de(np.reshape(Bn,[int(k),Ns], order='F'))] 
+        An = alfabeto[gray2de(np.reshape(Bn,[Ns,k]))]
    else:
        An = alfabeto[Bn]
     
@@ -233,9 +233,9 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
         phi1 = Pulso básico normalizado (energí­a unidad) de la componente en fase
         phi2 = Pulso básico normalizado (energí­a unidad) de la componente en cuadratura 
     '''
-
+    
     #Definiciones
-    eps = np.finfo(float).eps
+    eps = np.finfo(float).eps # por debajo de este valor se considera cero
     
     #Comprobación de las longitudes y otros datos de los pulsos básicos
     Ls1 = len(p1)
@@ -244,20 +244,22 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
         print('Pulsos de longitud 0, no es posible realizar la transmisión') 
         return
     if Ls1<L:
-        p1 = np.r_[p1,np.zeros(1,L-Ls1)]
-    else:
+        p1 = np.r_[p1, np.zeros(int(L-Ls1))]
+    elif Ls1>L:
         p1 = p1[:L]
+        print('La duración del pulso se trunca a {} muestras'.format(str(L)))
     if Ls2<L:
-        p2 = np.r_[p2,np.zeros(1,L-Ls2)]
-    else:
+        p2 = np.r_[p2, np.zeros(int(L-Ls2))]
+    elif Ls1>L:
         p2 = p2[:L]
+        print('La duración del pulso se trunca a {} muestras'.format(str(L)))       
 
     #Normalicemos las energías de los pulsos
-    phi1 = (1/np.sqrt(sum(p1*p1)))*p1
-    phi2 = (1/np.sqrt(sum(p2*p2)))*p2
+    phi1 = 1/np.sqrt(p1@p1)*p1
+    phi2 = 1/np.sqrt(p2@p2)*p2
     
     #Comprobemos la ortogonalidad
-    if np.abs(np.sum(phi1*phi2))>=1e0*eps*10:
+    if np.abs(phi1@phi2) >= 1e0*eps*10:
         print('Bases no ortogonales, no es posible realizar la transmisión') 
         return
     
@@ -267,8 +269,7 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
     k2 = int(np.ceil(np.log2(M2))) #Número de bist de la componente en cuadratura M2 = 2**(k2) #Valor de M2 tras la corrección
     k = k1 + k2 #Número de bits en cada símbolo QAM
     Nb = len(Bn)
-    Bn = np.pad(Bn, [0, int(k*np.ceil(Nb/k)-Nb)],mode='constant')
-    L = int(np.ceil(L/2)*2) #Forcemos que el nº de muestras por bit sea par
+    Bn = np.r_[Bn,np.zeros(int(k*np.ceil(Nb/k)-Nb)).astype(int)]    
     
     #Obtención de la mitad de la distancia mínima entre símbolos para Eb dada
     A = np.sqrt(3*Eb*np.log2(M1*M2)/(M1**2+M2**2-2))
@@ -277,18 +278,18 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
     AI = A * (2*np.arange(M1)-M1+1)
     AQ = A * (2*np.arange(M2)-M2+1)
     
-    #Separación de la secuencia de bits en as secuencias de las componentes en fase y cuadratura
+    #Separación de la secuencia de bits en las secuencias de las componentes en fase y cuadratura
     BnI,BnQ = split(Bn,M1,M2)
     NbI = len(BnI)
     NbQ = len(BnQ)
     
     #Obtención de la secuencia de símbolos de las componentes en fase y cuadratura
     if M1>2:
-        AnI = AI[gray2de(np.reshape(BnI,[k1, int(NbI/k1)], order='F'))] 
+        AnI = AI[gray2de(np.reshape(BnI,[int(NbI/k1),k1]))] 
     else:
         AnI = AI[BnI]
     if M2>2:
-        AnQ = AQ[gray2de(np.reshape(BnQ,[k2, int(NbQ/k2)], order='F'))]
+        AnQ = AQ[gray2de(np.reshape(BnQ,[int(NbQ/k2),k2]))]
     else:
         AnQ = AQ[BnQ]
         
@@ -359,7 +360,7 @@ Otras funciones de carácter general
 '''
 def gray2de(b): 
     ''' 
-     d = gray2de(b) Convierte cada fila de la matriz formada por dígitos binarios b
+     d = gray2de(b) Convierte cada fila de la matriz formada por dígitos binarios b
        en un vector columna, d, de los valores decimales correspondientes.
     '''
     c = np.zeros_like(b)
@@ -409,7 +410,7 @@ def split(Bn, M1, M2):
     #Longitud de la secuencia
     Nb = len(Bn)
     
-    #Una matriz con Ns=Nb/k filas formadas por los k1 bits más los k2 bits
+    #Una matriz con Ns=Nb/k filas formadas por los k bits
     W = np.reshape(Bn,[int(Nb/k),k])
     
     #Extrae la submatriz formada por los k1 primeros bits y pone una fila tras otra
@@ -485,41 +486,41 @@ def detectaSBF(rn,alfabeto):
     
     return An
     
-def split(Bn, M1, M2):
-    '''
-    Bn = una secuencia de símbolos binarios
-    M1 = nº de sí­mbolos de la componente en fase
-    M2 = nº de sí­mbolos de la componente en cuadratura
+# def split(Bn, M1, M2):
+#     '''
+#     Bn = una secuencia de símbolos binarios
+#     M1 = nº de sí­mbolos de la componente en fase
+#     M2 = nº de sí­mbolos de la componente en cuadratura
     
-    Devuelve:
-    BnI = La secuencia de sí­mbolos binarios de la componente en fase
-    BnQ = La secuencia de sí­mbolos binarios de la componente en cuadratura
-    '''    
-    k1=int(np.log2(M1))
-    k2=int(np.log2(M2))
-    k=k1+k2
+#     Devuelve:
+#     BnI = La secuencia de sí­mbolos binarios de la componente en fase
+#     BnQ = La secuencia de sí­mbolos binarios de la componente en cuadratura
+#     '''    
+#     k1=int(np.log2(M1))
+#     k2=int(np.log2(M2))
+#     k=k1+k2
     
-    #Longitud de la secuencia
-    Nb=len(Bn)
+#     #Longitud de la secuencia
+#     Nb=len(Bn)
     
-    #Una matriz con Nb/k filas formadas por los k1 bits más los k2 bits
-    W=np.reshape(Bn,[int(Nb/k),k]) 
+#     #Una matriz con Nb/k filas formadas por los k1 bits más los k2 bits
+#     W=np.reshape(Bn,[int(Nb/k),k]) 
     
-    #Extrae la submatriz formada por los k1 primeros bits y pone una fila tras otra
-    BnI=np.reshape(W[:,:k1],[k1*int(Nb/k)])
+#     #Extrae la submatriz formada por los k1 primeros bits y pone una fila tras otra
+#     BnI=np.reshape(W[:,:k1],[k1*int(Nb/k)])
     
-    #Extrae la submatriz formada por los k2 bits restantes y pone una fila tras otra
-    BnQ=np.reshape(W[:,k1:],[k2*int(Nb/k)])
+#     #Extrae la submatriz formada por los k2 bits restantes y pone una fila tras otra
+#     BnQ=np.reshape(W[:,k1:],[k2*int(Nb/k)])
                
-    return BnI, BnQ
+#     return BnI, BnQ
     
 def une(BndetectadoI,BndetectadoQ,M1,M2):
     '''
     [Bndetectado]=une(BndetectadoI,BndetectadoQ,M1,M2)
     BndetectadoI = una secuencia de sí­mbolos binarios correspondientes a los bits en posiciones múltiplos de k1
     BndetectadoQ = una secuencia de sí­mbolos binarios correspondientes a los bits en posiciones múltiplos de k2
-    M1 = nÂº de sí­mbolos de la componente en fase
-    M2 = nÂº de sí­mbolos de la componente en cuadratura
+    M1 = nº de sí­mbolos de la componente en fase
+    M2 = nº de sí­mbolos de la componente en cuadratura
     '''
     
     # Devuelve
