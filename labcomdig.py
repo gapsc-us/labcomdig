@@ -17,7 +17,7 @@ def Qfunct(x):
     Donde y = 1/sqrt(2*pi) * integral desde x hasta inf de exp(-t^2/2) dt
     '''
     from scipy.special import erfc 
-    from math import sqrt
+    from numpy import sqrt
     y=(1/2)*erfc(x/sqrt(2)) 
     return y
 
@@ -73,37 +73,39 @@ Tema 4
     
 def transmisorpam(Bn,Eb,M,p,L):
     '''
-    [Xn,Bn,An,phi,alfabetopam] = transmisorpam(Bn,M,Eb,p,L)
-     
-    Bn = Secuencia de dí­gitos binarios
-    Eb = Energí­a media por bit transmitida en Julios
-    M  = Número de sí­mbolos del código PAM
-    p  = Pulso paso de baja o paso de banda 
-    L  = Número de puntos a utilizar en la representación de un sí­mbolo
+    [Xn,Bn,An,phi,alfabetopam] = transmisorpam(Bn,Eb,M,p,L) 
+    
+    Entradas:    
+     Bn = Secuencia de dí­gitos binarios
+     Eb = Energía media por bit transmitida en Julios
+     M  = Número de síímbolos del código PAM
+     p  = Pulso paso de baja o paso de banda 
+     L  = Número de puntos a utilizar en la representación de un sí­mbolo
     
     Devuelve:
-    Xn = la señal de información (discreta)
-    Bn = La secuencia de dí­gitos binarios realmente transmitidos
-    An = La secuencia de niveles de amplitud transmitidos
-    phi = Pulso básico real normalizado (energí­a unidad)
-    alfabetopam = Los niveles de amplitud asociados a cada sí­mbolo
+     Xn = la señal de información (discreta)
+     Bn = La secuencia de dí­gitos binarios realmente transmitidos
+     An = La secuencia de niveles de amplitud transmitidos
+   	 phi = Pulso básico real normalizado (energí­a unidad)
+     alfabetopam = Los niveles de amplitud asociados a cada sí­mbolo
     '''    
-    
+    #Comprobación de parámetros de entrada
+    p=p.squeeze()
+    if len(Bn)<1 or Eb<=0 or M<2 or p@p==0 or L<1:
+        raise Exception('Error: revise los parámetros de entrada')
     # Se obtienen en primer lugar los niveles asociado a cada sí­mbolo ¿Cuántos bits hay en cada sí­mbolo?
-
-    k = int(np.ceil(np.log2(M)))
-    
-    # Se Ajusta M a una potencia de dos
-    M = 2**(k)
+    k = int(np.ceil(np.log2(M)))   
+    M = 2**(k) # Se Ajusta M a una potencia de dos
     
     # El alfabeto [Ver la ecuación (4.21)] 
     alfabetopam = np.sqrt(3*Eb*np.log2(M)/(M**2-1))*(2*(np.arange(M))-M+1)
     
     # Si Bn no tiene una longitud múltiplo de k, se completa con ceros
     Nb = len(Bn)  # Número de bits a transmitir, actualizado
+    Bn = Bn.squeeze().astype(int) #Comprobación de int y dimensiones   
     Bn = np.r_[Bn,np.zeros(int(k*np.ceil(Nb/k)-Nb)).astype(int)] #
     Nb = len(Bn)  # Número de bits a transmitir tras la corrección
-    Ns = Nb//k        # Número de sí­mbolos a transmitir
+    Ns = Nb//k # Número de sí­mbolos a transmitir
     
     # La secuencia generada
     if M>2:
@@ -118,14 +120,12 @@ def transmisorpam(Bn,Eb,M,p,L):
         p = np.r_[p, np.zeros(L-Ls)]
     elif Ls>L:
         print('La duración del pulso se trunca a {} muestras'.format(str(L)))
-        p = p[:L] #Debe modificarse si se quiere un pulso de más de L muestras
-    
+        p = p[:L] #Debe modificarse si se quiere un pulso de más de L muestras 
     # Se normaliza la energí­a del pulso para obtener la base del sistema
     phi = p / np.sqrt(p@p) 
        
-    # Obtención del tren de pulsos
-    Xn = np.kron(An,phi) #Debe modificarse si se quiere un pulso de más de L muestras
-    
+    # Obtención del tren de pulsos, Xn = np.kron(An,phi) ó
+    Xn = np.reshape(np.reshape(An,[Ns,1])*phi,[Ns*L,]) #Debe modificarse si se quiere un pulso de más de L muestras
     return [Xn,Bn,An,phi,alfabetopam]
       
 '''
@@ -136,46 +136,46 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
    [Xn,Bn,An,phi1,phi2,alfabeto] = transmisorpsk(Bn,Eb,M,p1,p2,L)
    
    Entradas:
-   Bn = Secuencia de dígitos binarios
-   Eb = Energía media por bit transmitida en Julios
-   M = Número de símbolos del código PSK
-   p1 = Pulso real de la componente en fase
-   p2 = Pulso real de la componente en cuadratura
-   L = Número de puntos que se utilizará en la representación de un símbolo
+   	Bn = Secuencia de dígitos binarios
+   	Eb = Energía media por bit transmitida en Julios
+   	M = Número de símbolos del código PSK
+   	p1 = Pulso real de la componente en fase
+   	p2 = Pulso real de la componente en cuadratura
+   	L = Número de puntos que se utilizará en la representación de un símbolo
    
    Devuelve:
-   Xn = la señal de información discreta
-   Bn = La secuencia de dígitos binarios realmente transmitidos
-   An = La secuencia de símbolos complejos transmitidos
-   phi1 = Pulso básico real normalizado (energí­a unidad) de la componente en fase
-   phi2 = Pulso básico real normalizado (energí­a unidad) de la componente en cuadratura
-   alfabeto = El alfabeto utilizado asociado a cada símbolo transmitido
+   	Xn = la señal de información discreta
+   	Bn = La secuencia de dígitos binarios realmente transmitidos
+   	An = La secuencia de símbolos complejos transmitidos
+   	phi1 = Pulso básico real normalizado (energí­a unidad) de la componente en fase
+   	phi2 = Pulso básico real normalizado (energí­a unidad) de la componente en cuadratura
+   	alfabeto = El alfabeto utilizado asociado a cada símbolo transmitido
    '''
+   #Comprobación de parámetros de entrada
+   p1 = p1.squeeze(); p2 = p2.squeeze()
+   if len(Bn)<1 or Eb<=0 or M<2 or p1@p1==0 or p2@p2==0 or L<1:
+      raise Exception('Error: revise los parámetros de entrada')
+        
    #Definiciones
    eps = np.finfo(float).eps # por debajo de este valor se considera cero
     
-   # Comprobación de las longitudes y otros datos de los pulsos de llamada
+   # Comprobación de pulsos
    Ls1 = len(p1)
-   Ls2 = len(p2)
-   if Ls1==0 or Ls2==0:
-       print('No es posible realizar la transmisión') 
-       return
-   
+   Ls2 = len(p2) 
    if Ls1<L:
-       p1 = np.r_[p1, np.zeros(int(L-Ls1))]
+      p1 = np.r_[p1, np.zeros(int(L-Ls1))]
    elif Ls1>L:
-       p1 = p1[:L]
-       print('La duración del pulso se trunca a {} muestras'.format(str(L)))
+      p1 = p1[:L]
+      print('La duración del pulso se trunca a {} muestras'.format(str(L)))
    if Ls2<L:
-       p2 = np.r_[p2, np.zeros(int(L-Ls2))]
+      p2 = np.r_[p2, np.zeros(int(L-Ls2))]
    elif Ls2>L:
-       p2 = p2[:L]
-       print('La duración del pulso se trunca a {} muestras'.format(str(L)))       
+      p2 = p2[:L]
+      print('La duración del pulso se trunca a {} muestras'.format(str(L)))       
        
    # Se comprueba la ortogonalidad
-   if abs(p1@p2) >= 1e0*eps*10:
-       print('No es posible realizar la transmisión') 
-       return
+   if abs(p1@p2) >= 1e2*eps:
+      raise Exception('No es posible realizar la transmisión')  
        
    # Se normalizan las energías de los pulsos
    phi1 = p1 / np.sqrt(p1@p1) 
@@ -184,15 +184,15 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
    phi = phi1 - 1j*phi2
    
    # Obtención de los niveles asociados a cada símbolo: alfabeto
-   # Número de bits por símbolo
-   k = int(np.ceil(np.log2(M)))
-   # Se ajusta M a una potencia de dos
-   M = 2**(k)
+   k = int(np.ceil(np.log2(M))) # Número de bits por símbolo
+   M = 2**(k) # Se ajusta M a una potencia de dos
+   
    # El alfabeto [Ver la ecuación (5.24)]
    alfabeto = np.sqrt(Eb*k)*np.exp(1j*2*np.pi*np.arange(M)/M) #empieza en 0
    
    # Si la longitud de Bn no es múltiplo de k, se completa con ceros
    Nb = len(Bn) 
+   Bn = Bn.squeeze().astype(int) #Comprobación de int y dimensiones
    Bn = np.r_[Bn,np.zeros(int(k*np.ceil(Nb/k)-Nb)).astype(int)] #
    
    # Número de bits y símbolos que vamos a transmitir
@@ -201,12 +201,12 @@ def transmisorpsk(Bn,Eb,M,p1,p2,L):
 
    # La secuencia generada
    if M>2:
-        An = alfabeto[gray2de(np.reshape(Bn,[Ns,k]))]
+      An = alfabeto[gray2de(np.reshape(Bn,[Ns,k]))]
    else:
        An = alfabeto[Bn]
     
-   # Obtención del tren de pulsos
-   Xn = np.real(np.kron(An, phi))
+   # Obtención del tren de pulsos,    Xn = np.real(np.kron(An, phi))  ó
+   Xn = np.real(np.reshape(np.reshape(An,[Ns,1])*phi,[Ns*L,]))
    return [Xn, Bn, An, phi1, phi2, alfabeto]         
 
 def transmisorqam(Bn, Eb, M1, M2, p1, p2, L): 
@@ -214,35 +214,35 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
     [Xn,BnI,BnQ,AnI,AnQ,AI,AQ,phi1,phi2] = transmisorqam(Bn, Eb, M1, M2,p1,p2,L)
     
     Entradas:
-        Bn = Secuencia de dígitos binarios
-        Eb = Energía media por bit transmitida en Julios
-        M1 = Nº de símbolos de la componente en fase
-        M2 = Nº de símbolos de la componente en cuadratura
-        p1 = Pulso real de la componente en fase
-        p2 = Pulso real de la componente en cuadratura
-        L = Nº de puntos que vamos a utilizar en la representación un símbolo
+     Bn = Secuencia de dígitos binarios
+     Eb = Energía media por bit transmitida en Julios
+     M1 = Nº de símbolos de la componente en fase
+     M2 = Nº de símbolos de la componente en cuadratura
+     p1 = Pulso real de la componente en fase
+     p2 = Pulso real de la componente en cuadratura
+     L = Nº de puntos que vamos a utilizar en la representación un símbolo
         
     Devuelve:
-        Xn = la señal de información digital
-        BnI = Bits transmitidos por la componente en fase
-        BnQ = Bits transmitidos por la componente en cuadratura
-        AnI = Niveles de amplitud transmitidos por la componente en fase
-        AnQ = Niveles de amplitud transmitidos por la componente en cuadratura 
-        AI = Niveles de amplitud usados en la componente en fase
-        AQ = Niveles de amplitud usados en la componente en cuadratura
-        phi1 = Pulso básico normalizado (energí­a unidad) de la componente en fase
-        phi2 = Pulso básico normalizado (energí­a unidad) de la componente en cuadratura 
+     Xn = la señal de información digital
+     BnI = Bits transmitidos por la componente en fase
+     BnQ = Bits transmitidos por la componente en cuadratura
+     AnI = Niveles de amplitud transmitidos por la componente en fase
+     AnQ = Niveles de amplitud transmitidos por la componente en cuadratura 
+     AI = Niveles de amplitud usados en la componente en fase
+     AQ = Niveles de amplitud usados en la componente en cuadratura
+     phi1 = Pulso básico normalizado (energí­a unidad) de la componente en fase
+     phi2 = Pulso básico normalizado (energí­a unidad) de la componente en cuadratura 
     '''
-    
+    #Comprobación de parámetros de entrada
+    p1 = p1.squeeze(); p2 = p2.squeeze()
+    if len(Bn)<1 or Eb<=0 or M1<2 or M2<2  or p1@p1==0 or p2@p2==0 or L<1:
+       raise Exception('Error: revise los parámetros de entrada')           
     #Definiciones
     eps = np.finfo(float).eps # por debajo de este valor se considera cero
     
-    #Comprobación de las longitudes y otros datos de los pulsos básicos
+    #Comprobación de los pulsos básicos
     Ls1 = len(p1)
     Ls2 = len(p2)
-    if Ls1==0 or Ls2==0:
-        print('Pulsos de longitud 0, no es posible realizar la transmisión') 
-        return
     if Ls1<L:
         p1 = np.r_[p1, np.zeros(int(L-Ls1))]
     elif Ls1>L:
@@ -259,16 +259,15 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
     phi2 = 1/np.sqrt(p2@p2)*p2
     
     #Comprobemos la ortogonalidad
-    if np.abs(phi1@phi2) >= 1e0*eps*10:
-        print('Bases no ortogonales, no es posible realizar la transmisión') 
-        return
+    if np.abs(phi1@phi2) >= 1e2*eps:
+        raise Exception('Bases no ortogonales, no es posible realizar la transmisión')
     
     #Ajuste de los parámetros   
     k1 = int(np.ceil(np.log2(M1))) #Número de bits de la componente en fase
     M1 = 2**(k1) #Valor de M1 tras la corrección
     k2 = int(np.ceil(np.log2(M2))) #Número de bist de la componente en cuadratura M2 = 2**(k2) #Valor de M2 tras la corrección
     k = k1 + k2 #Número de bits en cada símbolo QAM
-    Nb = len(Bn)
+    Nb = len(Bn); Bn = Bn.squeeze().astype(int) #Comprobación de int y dimensiones
     Bn = np.r_[Bn,np.zeros(int(k*np.ceil(Nb/k)-Nb)).astype(int)]    
     
     #Obtención de la mitad de la distancia mínima entre símbolos para Eb dada
@@ -292,19 +291,20 @@ def transmisorqam(Bn, Eb, M1, M2, p1, p2, L):
         AnQ = AQ[gray2de(np.reshape(BnQ,[int(NbQ/k2),k2]))]
     else:
         AnQ = AQ[BnQ]
-        
+    Ns = len(AnI)    
+    
     #Las componentes en fase, cuadratura y total de la señal discreta a transmitir
-    XnI = np.kron(AnI, phi1);
-    XnQ = np.kron(AnQ, phi2);
+    XnI=np.reshape(np.reshape(AnI,[Ns,1])*phi1,[Ns*L,]) #ó XnI=np.kron(AnI, phi1);
+    XnQ=np.reshape(np.reshape(AnQ,[Ns,1])*phi2,[Ns*L,]) #ó XnQ=np.kron(AnQ, phi2);
     Xn = XnI+XnQ;
     return Xn, BnI, BnQ, AnI, AnQ, AI, AQ, phi1, phi2 
     
 '''
 Tema 8
 '''
-def transmisorppm(Bn, Eb, g, L, M):
+def transmisorppm(Bn, Eb, p, L, M):
     '''
-    [Xn,Nb,M,phi] = transmisorppm(Bn, Eb, g, L, M)
+    [Xn,Nb,M,phi] = transmisorppm(Bn, Eb, p, L, M)
     
     Genera una señal PPM de acuerdo con los parámetros suministrados.
      Bn = Secuencia de dí­gitos binarios.
@@ -319,30 +319,31 @@ def transmisorppm(Bn, Eb, g, L, M):
      M = número total de sí­mbolos.
      phi=una matriz en la que cada fila representa el pulso normalizado que se utiliza para transmitir cada sí­mbolo; esto es, cada fila representa un elemento de la base del espacio de señales.
     '''
-    
+    #Comprobación de parámetros de entrada
+    if len(Bn)<1 or Eb<=0 or M<2 or p@p==0 or L<1:
+        raise Exception('Error: revise los parámetros de entrada')
+        
     # Ajustemos el valor de M a una potencia de 2
     k=int(np.ceil(np.log2(M)))
     M=2**k
     Es=k*Eb    # Energí­a del sí­mbolo
     
-    # Ajustemos la longitud del pulso básico.
-    Ng=len(g)
-    if Ng<L:
-        p=np.pad(g , L-Ng, 'constant')
+    # Ajustemos la longitud del pulso básico y su energía
+    Np=len(p)
+    if Np<L:
+        p=np.pad(p , L-Np, 'constant')
     else:
         p=p[:L]
-    
-    # Normalicemos su energí­a
-    p=(1/np.sqrt(np.sum(p*p)))*p   
+    p=(1/np.sqrt(np.sum(p*p)))*p   # Normalicemos su energí­a
     
     # Ajustemos los bits a transmitir a un número entero de sí­mbolos: Si la secuencia Bn no tiene una longitud múltiplo de k, se completa con ceros
     Bn=np.pad(Bn, [0,int(k*np.ceil(len(Bn)/k)-len(Bn))], 'constant')
-    
+    Bn = Bn.squeeze().astype(int) #Comprobación de int y dimensiones
     Nb=len(Bn)  # Número de bits que vamos a transmitir
     Ns=int(Nb/k)     # Número de sí­mbolos 
     
     # Obtengamos la secuencia de M valores diferentes correspondientes a los sí­mbolos a transmitir
-    An=np.dot(np.reshape(Bn,[Ns,k]), 2**np.flip(np.arange(k)))
+    An = np.reshape(Bn,[Ns,k]) @ 2**np.flip(np.arange(k))
     
     # Construyamos la matriz formada por los vectores de la base.
     phi=np.zeros([M,L*M])
@@ -351,45 +352,44 @@ def transmisorppm(Bn, Eb, g, L, M):
 
     # Obtención del tren de pulsos conjunto
     Xn = list(map(lambda Ai: phi[Ai,:], An))
-    Xn = np.sqrt(Es)*np.concatenate(Xn)
-    
+    Xn = np.sqrt(Es)*np.concatenate(Xn) 
     return [Xn,Bn,Nb,M,phi]
  
 '''
 Otras funciones de carácter general
 '''
-def gray2de(b): 
-    ''' 
-     d = gray2de(b) Convierte cada fila de la matriz formada por dígitos binarios b
-       en un vector columna, d, de los valores decimales correspondientes.
+def gray2de(b):
     '''
-    c = np.zeros_like(b)
-    c[:,0] = b[:,0]
+    Convierte cada columna de la matriz formada por dígitos binarios b en un vector
+        fila de los valores decimales correspondientes, aplicando codificación de Gray.
+    '''
+    if not isinstance(b, (np.ndarray, list, tuple)):  # se comprueba que no sea np.array, lista o tupla
+       raise Exception('Error: la entrada no es un array, lista o tupla')
+    b = np.array(b)    # Esto es para que admita también listas y tuplas
+    c = np.zeros_like(b); c[:,0] = b[:,0]
     for i in range(1,np.shape(b)[1]):
         c[:,i] = np.logical_xor(c[:,i-1], b[:,i])
-    # Convierte los bits menos significativos en los más significativos
-    c = np.fliplr(c)
-
+    c = np.fliplr(c) # Convierte los bits menos significativos en los más significativos
     #Comprueba un caso especial.
     [n,m] = np.shape(c) 
     if np.min([m,n]) < 1:
         d = []
         return
-    d = np.dot(c, 2**np.arange(m))
-    return d
+    d = c @ 2**np.arange(m)
+    return d 
 
 def de2gray(d,n):
     """
-    Convierte un número decimal en un vector binario de longitud n
-    Versión adaptada de una función de Mathworks
-    """ 
-    from sympy.combinatorics.graycode import GrayCode
-    
-    gray_list_str = list(GrayCode(n).generate_gray())
-    gray_list = list(map(lambda ind: np.array(list(gray_list_str[ind]), dtype=np.int), range(len(gray_list_str))))
-    g = list(map(lambda ind: gray_list[int(d[ind])], range(0,len(d))))
-
-    return np.array(g)
+    b = de2gray(d,n)
+    Convierte un número decimal, d, en un vector binario, b, de longitud n
+    """   
+    c = np.zeros([len(d),int(n)])
+    for i in range(int(n)): d, c[:,i] = np.divmod(d,2)
+    c = np.fliplr(c); b = np.zeros_like(c); b[:,0] = c[:,0]; aux = b[:,0]
+    for i in range(1,int(n)):
+        b[:,i] = np.logical_xor(aux, c[:,i])
+        aux = np.logical_xor(b[:,i], aux) 
+    return np.reshape(b,[-1]).astype(np.int)
     
 def split(Bn, M1, M2):
     '''
@@ -424,16 +424,13 @@ def split(Bn, M1, M2):
 def simbolobit(An,alfabeto):
     '''
     Bn = simbolobit(An, alfabeto)
-    An       = secuencia de sí­mbolos pertenecientes al alfabeto
+    An = secuencia de sí­mbolos pertenecientes al alfabeto
     alfabeto = tabla con los sí­mbolos utilizados en la transmisión 
-    Bn       = una secuencia de bit, considerando que los sí­mbolos se habí­an
+    Bn = una secuencia de bit, considerando que los sí­mbolos se habí­an
     generado siguiendo una codificación de Gray
     '''
     
-    from labcomdig import de2gray
-    
-    # ¿Cuántos bits hay en cada sí­mbolo?
-    k = np.log2(len(alfabeto))
+    k = np.log2(len(alfabeto)) # bits por sí­mbolo
     
     if k>1:
         distancia = abs(alfabeto[0]-alfabeto[1])
@@ -444,10 +441,13 @@ def simbolobit(An,alfabeto):
     
     return Bn
 
-def detecta(rn, alfabeto):
+
+
+
+def detecta(r, alfabeto):
     '''
-    detecta(rn, alfabeto)
-    rn       = una secuencia de sí­mbolos más ruido
+    An = detecta(r, alfabeto)
+    r = secuencia a la entrada del detector, con estimaciones de s_i
     alfabeto = tabla con los niveles de amplitud/sí­mbolos  
     
     Genera:
@@ -456,33 +456,33 @@ def detecta(rn, alfabeto):
     '''
     
     # Longitud de la secuencia                
-    N = len(rn)
+    N = len(r)
     
     # Inicializa
     An = np.zeros(N)
     
     for i in range(N):
-        ind = np.where(abs(rn[i]-alfabeto) == np.amin(abs(rn[i]-alfabeto)))
+        ind = np.argmin(abs(r[i]-alfabeto)) #ind = np.where(abs(r[i]-alfabeto) == np.amin(abs(r[i]-alfabeto)))
         An[i] = alfabeto[ind]
     
     return An
 
-def detectaSBF(rn,alfabeto):
+def detectaSBF(r,alfabeto):
     '''
-    detectaSBF(rn,alfabeto)
-    rn       = una secuencia de sí­mbolos más ruido
-    alfabeto = tabla con los niveles de amplitud/sí­mbolos  
+    An = detectaSBF(r,alfabeto)
+    r = secuencia a la entrada del detector, con estimaciones de s_i
+    alfabeto = tabla con los niveles de amplitud/símbolos  
     
     Genera:
-    An = una secuencia de sí­mbolos pertenecientes al alfabeto de acuerdo con
-    una regla de distancia euclidiana mí­nima (mí­nima distancia)
+    An = una secuencia de símbolos pertenecientes al alfabeto de acuerdo con
+    una regla de distancia euclidiana mínima (mínima distancia)
     '''
-
-    # Obtiene el í­ndice respecto al alfabeto
-    ind = map(lambda i: np.argmin(abs(rn[i] - alfabeto)), range(0,len(rn)))
+    
+    # Obtiene el índice respecto al alfabeto
+    ind = np.argmin(np.abs(np.repeat(np.expand_dims(r,1),len(alfabeto),1) - alfabeto), 1)
     
     # Genera la secuencia de niveles detectados
-    An = np.array(list(map(lambda i: alfabeto[i], ind)))
+    An = alfabeto[list(ind)]
     
     return An
     
