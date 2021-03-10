@@ -1,6 +1,8 @@
 # labcomdig
 
-You may open the notebooks here or at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gapsc-us/labcomdig/main). Run them locally or at open them here and click int othe google colab badge-link in the notebooks. We are trying to make them run at Binder ...
+Puede descargar y ejecutar localmente los notebooks (necesitará un entorno de python como anaconda o pycharm), puede abrir y ejecutar los notebooks en [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gapsc-us/labcomdig/main). O puede abrirlos aquí para sólo leerlos, y para ejecutar puede hacer click en el banner que hay al comienzo de cada notebook para ejecutarlo en google colab.
+
+Se incluye un environment, pero no único que hace falta es instalar numpy, recomendándose la versión 1.18.
 
 ## Contenidos
 
