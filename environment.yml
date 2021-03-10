@@ -6,3 +6,4 @@ dependencies:
   - numpy-base=1.18.1
   - matplotlib=3.3.2
   - matplotlib-base=3.3.2
+  - scipy=1.5.2
