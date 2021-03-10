@@ -71,7 +71,7 @@ dependencies:
   - mpfr=4.0.1=h3018a27_3
   - mpmath=1.1.0=py37_0
   - nbconvert=5.6.1=py37_0
-  - nbformat=4.4.0=py37_0
+  - nbformat
   - ncurses=6.1=h0a44026_1
   - notebook=6.0.2=py37_0
   - numpy=1.17.3=py37h4174a10_0
