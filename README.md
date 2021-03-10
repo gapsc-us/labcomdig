@@ -1,9 +1,7 @@
 # labcomdig
 
-Run at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gapsc-us/labcomdig/labcomdig)  or open the notebooks to run them into google colab
+Run at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gapsc-us/labcomdig/main)  or open the notebooks to run them into google colab
 
-.. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/gapsc-us/labcomdig/labcomdig
 
 ## Contenidos
 
