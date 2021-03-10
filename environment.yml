@@ -5,7 +5,7 @@ channels:
 dependencies:
   - alabaster=0.7.12
   - applaunchservices=0.2.1
-  - appnope=0.1.2
+  - appnope
   - argh=0.26.2
   - argon2-cffi=20.1.0
   - astroid=2.4.2
@@ -68,7 +68,7 @@ dependencies:
   - libcxx=10.0.0
   - libedit=3.1.20191231
   - libffi=3.3
-  - libgfortran=3.0.1
+  - libgfortran
   - libiconv=1.16
   - libpng=1.6.37
   - libsodium=1.0.18
@@ -83,7 +83,7 @@ dependencies:
   - mkl=2019.4
   - mkl-service=2.3.0
   - mkl_fft=1.2.0
-  - mkl_random=1.1.1
+  - mkl_random
   - mpc=1.1.0
   - mpfr=4.0.2
   - mpmath=1.1.0
@@ -121,14 +121,14 @@ dependencies:
   - pylint=2.6.0
   - pyopenssl=20.0.0
   - pyparsing=2.4.7
-  - pyqt=5.9.2
+  - pyqt
   - pyrsistent=0.17.3
   - pysocks=1.7.1
   - python=3.8.5
   - python-dateutil=2.8.1
   - python-jsonrpc-server=0.4.0
   - python-language-server=0.35.1
-  - python.app=3
+  - python.app
   - python_abi=3.8
   - pytz=2020.4
   - pyyaml=5.3.1
