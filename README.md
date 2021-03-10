@@ -1,7 +1,6 @@
 # labcomdig
 
-Run at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gapsc-us/labcomdig/main)  or open the notebooks to run them into google colab
-
+You may open the notebooks here or at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gapsc-us/labcomdig/main). Run them locally or at open them here and click int othe google colab badge-link in the notebooks. We are trying to make them run at Binder ...
 
 ## Contenidos
 
