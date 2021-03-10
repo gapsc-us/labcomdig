@@ -44,8 +44,8 @@ dependencies:
   - jinja2=2.10.3=py_0
   - jpeg=9b=he5867d9_2
   - jsonschema=3.2.0=py37_0
-  - jupyter_client=5.3.4=py37_0
-  - jupyter_core=4.6.1=py37_0
+  - jupyter_client
+  - jupyter_core
   - keyring=20.0.0=py37_0
   - kiwisolver=1.1.0=py37h0a44026_0
   - lazy-object-proxy=1.4.3=py37h1de35cc_0
